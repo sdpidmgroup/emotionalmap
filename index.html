@@ -74,7 +74,7 @@
                 </div>
                 <div>
                     <label class="block text-sm font-bold text-gray-700 mb-1">NIK</label>
-                    <input type="number" id="input-nik" placeholder="Ketik NIK kamu..." class="w-full px-4 py-3 rounded-xl border-2 border-yellow-200 focus:border-yellow-500 focus:outline-none bg-yellow-50 transition-colors">
+                    <input type="text" id="input-nik" placeholder="Ketik NIK kamu..." class="w-full px-4 py-3 rounded-xl border-2 border-yellow-200 focus:border-yellow-500 focus:outline-none bg-yellow-50 transition-colors">
                 </div>
                 <button onclick="app.startGame()" class="w-full bg-yellow-400 hover:bg-yellow-500 text-gray-900 font-bold py-4 rounded-xl shadow-[0_4px_0_rgb(202,138,4)] hover:shadow-[0_2px_0_rgb(202,138,4)] hover:translate-y-[2px] transition-all text-lg mt-4">
                     MULAI MISI 🚀
@@ -297,11 +297,10 @@
         </div>
     </div>
 
-    <!-- MODAL: MEME POPUP (Feedback with exact 1:1 ratio) -->
+    <!-- MODAL: MEME POPUP -->
     <div id="modal-meme" class="fixed inset-0 z-50 bg-black/60 hidden flex items-center justify-center p-4">
         <div id="meme-content" class="bg-white p-6 pb-8 rounded-3xl shadow-2xl text-center border-8 transform scale-0 max-w-sm w-full">
             
-            <!-- Exact 1:1 Sizing Container to prevent layout shift & cutting -->
             <div class="w-64 h-64 mx-auto overflow-hidden rounded-2xl border-4 border-gray-100 shadow-inner mb-4 relative bg-gray-50">
                 <img id="meme-img" src="" alt="Meme Feedback" class="absolute inset-0 w-full h-full object-cover" onerror="this.src='https://placehold.co/400x400/eee/999?text=Meme'">
             </div>
@@ -329,7 +328,7 @@
                 <p id="result-subtitle" class="text-gray-500 font-bold">Inilah hasil evaluasi hubungan kerjamu!</p>
             </div>
 
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-4">
                 <div class="bg-yellow-50 p-6 rounded-2xl border-2 border-yellow-200 text-center">
                     <div class="text-sm font-bold text-gray-500 uppercase">Saldo Emosi Akhir</div>
                     <div id="final-score" class="text-5xl font-black text-yellow-600 mt-2">0</div>
@@ -341,6 +340,11 @@
                         Sukses
                     </div>
                 </div>
+            </div>
+
+            <!-- UI Indikator Pengiriman Data ke GAS -->
+            <div id="sync-status" class="text-center mb-8 text-sm font-bold">
+                <!-- Status akan di-update oleh fungsi JS fetch -->
             </div>
 
             <h3 class="font-bold text-lg mb-4 border-b-2 border-gray-100 pb-2">Log Interaksi (Review):</h3>
@@ -378,7 +382,6 @@
                 this.isMuted = !this.isMuted;
                 document.getElementById('btn-mute').innerHTML = this.isMuted ? '🔇' : '🔊';
                 if (this.bgmGain) {
-                    // Smooth transition to prevent audio popping click
                     this.bgmGain.gain.setTargetAtTime(this.isMuted ? 0 : 0.08, this.ctx.currentTime, 0.1);
                 }
             },
@@ -400,7 +403,7 @@
 
             playCorrect() {
                 if (this.isMuted || !this.ctx) return;
-                const freqs = [523.25, 659.25, 783.99, 1046.50]; // C Major Chord (Upward)
+                const freqs = [523.25, 659.25, 783.99, 1046.50];
                 const gain = this.ctx.createGain();
                 gain.gain.value = 0.08;
                 gain.connect(this.ctx.destination);
@@ -425,7 +428,6 @@
                 gain.gain.setValueAtTime(0.12, this.ctx.currentTime);
                 gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + 0.4);
                 
-                // Lowpass filter to give "thud" effect
                 const filter = this.ctx.createBiquadFilter();
                 filter.type = 'lowpass';
                 filter.frequency.value = 400;
@@ -446,9 +448,8 @@
                 this.bgmGain.gain.value = this.isMuted ? 0 : 0.08;
                 this.bgmGain.connect(this.ctx.destination);
 
-                // Upbeat Cheerful Major Pentatonic Melody Block (C4 -> A5)
                 const cheerfulNotes = [
-                    523.25, 587.33, 659.25, 783.99, 880.00, // C5, D5, E5, G5, A5
+                    523.25, 587.33, 659.25, 783.99, 880.00,
                     659.25, 783.99, 523.25, 587.33, 783.99,
                     880.00, 1046.50, 880.00, 783.99, 659.25,
                     587.33, 523.25, 659.25, 783.99, 523.25
@@ -461,7 +462,7 @@
                     const osc = this.ctx.createOscillator();
                     const noteGain = this.ctx.createGain();
                     
-                    osc.type = 'triangle'; // Smooth sweet tone
+                    osc.type = 'triangle';
                     osc.frequency.setValueAtTime(cheerfulNotes[noteIndex], this.ctx.currentTime);
                     
                     noteGain.gain.setValueAtTime(0.25, this.ctx.currentTime);
@@ -479,8 +480,6 @@
                     osc.stop(this.ctx.currentTime + 0.28);
                     
                     noteIndex = (noteIndex + 1) % cheerfulNotes.length;
-                    
-                    // Trigger note every 300ms
                     this.bgmInterval = setTimeout(synthMelody, 300);
                 };
                 
@@ -490,69 +489,18 @@
 
         // --- 2. GAME DATA ---
         const questionsData = [
-            {
-                id: 1, pos: { x: 17, y: 22 }, // Meeting Room
-                text: "Rekan divisi Finance meminta data untuk laporan akhir bulan saat kamu sedang fokus coding. Kamu merespon dengan ramah dan menjanjikan data dalam 30 menit.",
-                type: "Setoran",
-                explanation: "Menghargai urgensi divisi lain tanpa mengorbankan pekerjaanmu. Ini membangun rasa aman (saldo positif)."
-            },
-            {
-                id: 2, pos: { x: 45, y: 55 }, // Workspace 1
-                text: "Kamu kesal karena desain UI berubah-ubah, lalu kamu mengkritik keras sang desainer di grup WhatsApp kantor yang berisi banyak orang.",
-                type: "Tarikan",
-                explanation: "Mengkritik di depan umum merendahkan harga diri rekan kerja. Tarikan besar pada saldo emosi!"
-            },
-            {
-                id: 3, pos: { x: 12, y: 80 }, // Pantry
-                text: "Kamu melihat tim IT sedang lembur setup server. Kamu mampir ke pantry dan membuatkan mereka kopi/cemilan.",
-                type: "Setoran",
-                explanation: "Perhatian kecil (deposit) sangat efektif membangun empati dan dukungan jangka panjang dari tim IT."
-            },
-            {
-                id: 4, pos: { x: 26, y: 22 }, // Meeting room seat
-                text: "Kamu membatalkan meeting evaluasi dengan tim QA secara mendadak hanya karena kamu merasa kode buatanmu sudah sempurna dan bebas bug.",
-                type: "Tarikan",
-                explanation: "Sombong dan tidak menghargai waktu orang lain. Ini merusak komunikasi terbuka."
-            },
-            {
-                id: 5, pos: { x: 80, y: 20 }, // Manager Office
-                text: "Kamu mengabaikan chat dari manajer yang menanyakan progres karena merasa dia terlalu 'micromanage' dan mengganggu kerjamu.",
-                type: "Tarikan",
-                explanation: "Mengabaikan atasan (silence) menciptakan kecurigaan. Manajer butuh rasa aman mengenai progres proyek."
-            },
-            {
-                id: 6, pos: { x: 70, y: 65 }, // Workspace 2
-                text: "Saat presentasi ke manajemen, kamu mengambil seluruh kredit atas keberhasilan rilis fitur, padahal itu hasil begadang tim juniormu.",
-                type: "Tarikan",
-                explanation: "Mengklaim hasil kerja orang lain adalah pengkhianatan kepercayaan yang paling fatal di dunia kerja."
-            },
-            {
-                id: 7, pos: { x: 38, y: 10 }, // Near Plant
-                text: "Kamu berpapasan dengan staf kebersihan dan mengucapkan terima kasih secara spesifik karena selalu merapikan mejamu setiap pagi.",
-                type: "Setoran",
-                explanation: "Apresiasi tulus kepada siapa saja (tanpa memandang jabatan) memperkuat karakter dan budaya kerja positif."
-            },
-            {
-                id: 8, pos: { x: 50, y: 75 }, // Workspace 3
-                text: "Kamu meluangkan waktu 10 menit untuk mendengarkan keluh kesah rekan kerjamu yang sedang merasa burnout akibat revisi tiada henti.",
-                type: "Setoran",
-                explanation: "Mendengarkan secara empatik adalah salah satu bentuk 'Setoran' terbesar menurut Stephen Covey."
-            },
-            {
-                id: 9, pos: { x: 40, y: 35 }, // Hallway
-                text: "Kamu menyadari ada bug parah di kodemu yang membuat tim QA lembur. Kamu meminta maaf secara tulus tanpa mencari alasan.",
-                type: "Setoran",
-                explanation: "Meminta maaf dengan tulus saat salah justru membangun kepercayaan, bukan melemahkan."
-            },
-            {
-                id: 10, pos: { x: 85, y: 70 }, // Corner
-                text: "Kamu sengaja tidak mendokumentasikan cara kerja API yang kamu buat agar kamu terlihat sebagai satu-satunya orang yang 'jago' di tim.",
-                type: "Tarikan",
-                explanation: "Menyimpan informasi (siloing) demi ego pribadi sangat merusak kolaborasi dan membahayakan proyek."
-            }
+            { id: 1, pos: { x: 17, y: 22 }, text: "Rekan divisi Finance meminta data untuk laporan akhir bulan saat kamu sedang fokus coding. Kamu merespon dengan ramah dan menjanjikan data dalam 30 menit.", type: "Setoran", explanation: "Menghargai urgensi divisi lain tanpa mengorbankan pekerjaanmu. Ini membangun rasa aman (saldo positif)." },
+            { id: 2, pos: { x: 45, y: 55 }, text: "Kamu kesal karena desain UI berubah-ubah, lalu kamu mengkritik keras sang desainer di grup WhatsApp kantor yang berisi banyak orang.", type: "Tarikan", explanation: "Mengkritik di depan umum merendahkan harga diri rekan kerja. Tarikan besar pada saldo emosi!" },
+            { id: 3, pos: { x: 12, y: 80 }, text: "Kamu melihat tim IT sedang lembur setup server. Kamu mampir ke pantry dan membuatkan mereka kopi/cemilan.", type: "Setoran", explanation: "Perhatian kecil (deposit) sangat efektif membangun empati dan dukungan jangka panjang dari tim IT." },
+            { id: 4, pos: { x: 26, y: 22 }, text: "Kamu membatalkan meeting evaluasi dengan tim QA secara mendadak hanya karena kamu merasa kode buatanmu sudah sempurna dan bebas bug.", type: "Tarikan", explanation: "Sombong dan tidak menghargai waktu orang lain. Ini merusak komunikasi terbuka." },
+            { id: 5, pos: { x: 80, y: 20 }, text: "Kamu mengabaikan chat dari manajer yang menanyakan progres karena merasa dia terlalu 'micromanage' dan mengganggu kerjamu.", type: "Tarikan", explanation: "Mengabaikan atasan (silence) menciptakan kecurigaan. Manajer butuh rasa aman mengenai progres proyek." },
+            { id: 6, pos: { x: 70, y: 65 }, text: "Saat presentasi ke manajemen, kamu mengambil seluruh kredit atas keberhasilan rilis fitur, padahal itu hasil begadang tim juniormu.", type: "Tarikan", explanation: "Mengklaim hasil kerja orang lain adalah pengkhianatan kepercayaan yang paling fatal di dunia kerja." },
+            { id: 7, pos: { x: 38, y: 10 }, text: "Kamu berpapasan dengan staf kebersihan dan mengucapkan terima kasih secara spesifik karena selalu merapikan mejamu setiap pagi.", type: "Setoran", explanation: "Apresiasi tulus kepada siapa saja (tanpa memandang jabatan) memperkuat karakter dan budaya kerja positif." },
+            { id: 8, pos: { x: 50, y: 75 }, text: "Kamu meluangkan waktu 10 menit untuk mendengarkan keluh kesah rekan kerjamu yang sedang merasa burnout akibat revisi tiada henti.", type: "Setoran", explanation: "Mendengarkan secara empatik adalah salah satu bentuk 'Setoran' terbesar menurut Stephen Covey." },
+            { id: 9, pos: { x: 40, y: 35 }, text: "Kamu menyadari ada bug parah di kodemu yang membuat tim QA lembur. Kamu meminta maaf secara tulus tanpa mencari alasan.", type: "Setoran", explanation: "Meminta maaf dengan tulus saat salah justru membangun kepercayaan, bukan melemahkan." },
+            { id: 10, pos: { x: 85, y: 70 }, text: "Kamu sengaja tidak mendokumentasikan cara kerja API yang kamu buat agar kamu terlihat sebagai satu-satunya orang yang 'jago' di tim.", type: "Tarikan", explanation: "Menyimpan informasi (siloing) demi ego pribadi sangat merusak kolaborasi dan membahayakan proyek." }
         ];
 
-        // High quality external Imgflip / static 1:1 templates
         const memes = {
             correct: [
                 { imgUrl: "https://i.imgflip.com/3nngy8.jpg", title: "STONKS", color: "border-green-500", text: "text-green-600" },
@@ -593,13 +541,11 @@
                 this.name = nameInput;
                 this.nik = nikInput;
                 
-                // Trigger Web Audio initial handshakes
                 audioManager.init();
                 audioManager.playClick();
 
                 document.getElementById('display-name').innerText = this.name;
                 
-                // Move Screen
                 document.getElementById('screen-login').classList.add('hidden');
                 document.getElementById('screen-briefing').classList.remove('hidden');
             },
@@ -783,7 +729,7 @@
                 modal.classList.add('flex');
                 
                 content.classList.remove('meme-animate');
-                void content.offsetWidth; // trigger reflow layout rendering
+                void content.offsetWidth;
                 content.classList.add('meme-animate');
             },
 
@@ -795,6 +741,72 @@
 
                 if (this.answeredCount >= questionsData.length) {
                     setTimeout(() => this.endGame(), 500);
+                }
+            },
+
+            // ==============================================================================
+            // FUNGSI PENGIRIMAN DATA KE GOOGLE APPS SCRIPT (GAS)
+            // ==============================================================================
+            async sendGameDataToGoogleSheets() {
+                const url = "https://script.google.com/macros/s/AKfycbx5eyaoZx4dJIV-9Fo4pQERamGKDH9rhw_bcVLRcEJxUyWSjKySD9EzoX4S6lM86CBsFA/exec";
+
+                // Kalkulasi data spesifik yang diminta backend GAS
+                const totalTepat = this.history.filter(h => h.isCorrect).length;
+                const totalTimeout = this.history.filter(h => h.userChoice === "Kehabisan Waktu").length;
+                const statusKelulusan = this.score >= this.targetScore ? "Sukses" : "Gagal";
+                const lencana = this.unlockedBadges.join(", ") || "Tidak ada";
+
+                // Membentuk Payload JSON sesuai spesifikasi (Case-sensitive / Key persis sama)
+                const playerData = {
+                    Timestamp: new Date().toISOString(),
+                    NIK: String(this.nik),
+                    Nama_Lengkap: String(this.name),
+                    Skor_Saldo_Emosi: Number(this.score),
+                    Status_Kelulusan: statusKelulusan,
+                    Total_Tepat: Number(totalTepat),
+                    Total_Timeout: Number(totalTimeout),
+                    Lencana_Didapat: lencana,
+                    Log_Interaksi_Raw: JSON.stringify(this.history)
+                };
+
+                // UI Feedback: Beri tahu user bahwa data sedang dikirim
+                const syncStatusEl = document.getElementById('sync-status');
+                if (syncStatusEl) {
+                    syncStatusEl.innerHTML = '⏳ Sedang menyimpan performamu ke server...';
+                    syncStatusEl.className = 'text-center mb-8 text-sm font-bold text-blue-500 animate-pulse';
+                }
+
+                try {
+                    // Konfigurasi fetch sesuai ketentuan spesifikasi
+                    const response = await fetch(url, {
+                        method: 'POST',
+                        mode: 'cors',
+                        headers: {
+                            // WAJIB: Gunakan text/plain untuk bypass preflight OPTIONS dari browser
+                            'Content-Type': 'text/plain;charset=utf-8' 
+                        },
+                        body: JSON.stringify(playerData)
+                    });
+
+                    if (response.ok) {
+                        console.log("Data berhasil dikirim ke Google Sheets!");
+                        if (syncStatusEl) {
+                            syncStatusEl.innerHTML = '✅ Data performa berhasil disimpan!';
+                            syncStatusEl.className = 'text-center mb-8 text-sm font-bold text-green-600';
+                        }
+                    } else {
+                        console.error("Gagal mengirim data:", response.statusText);
+                        if (syncStatusEl) {
+                            syncStatusEl.innerHTML = '❌ Gagal menyimpan data ke server.';
+                            syncStatusEl.className = 'text-center mb-8 text-sm font-bold text-red-500';
+                        }
+                    }
+                } catch (error) {
+                    console.error("Terjadi kesalahan koneksi saat pengiriman:", error);
+                    if (syncStatusEl) {
+                        syncStatusEl.innerHTML = '❌ Masalah jaringan: Gagal menyimpan data.';
+                        syncStatusEl.className = 'text-center mb-8 text-sm font-bold text-red-500';
+                    }
                 }
             },
 
@@ -835,6 +847,13 @@
                     finalStatusEl.className = "text-xl font-bold text-red-700 px-4 py-2 bg-red-100 rounded-lg inline-block";
                     audioManager.playWrong();
                 }
+
+                // =========================================================================
+                // [TRIGGER API] 
+                // Dipanggil otomatis tepat ketika state game mendeteksi misi berakhir.
+                // Fungsi dieksekusi secara asinkron (tidak mengganggu load UI).
+                // =========================================================================
+                this.sendGameDataToGoogleSheets();
 
                 const list = document.getElementById('review-list');
                 list.innerHTML = '';
