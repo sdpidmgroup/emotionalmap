@@ -1,0 +1,864 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Emotional Blueprint</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;800&family=Anton&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: #FEF3C7; /* yellow-100 */
+            color: #1F2937;
+            overflow-x: hidden;
+            overscroll-behavior-y: none;
+        }
+        .meme-font {
+            font-family: 'Anton', sans-serif;
+            text-transform: uppercase;
+            text-shadow: 2px 2px 0 #000, -2px -2px 0 #000, 2px -2px 0 #000, -2px 2px 0 #000;
+            color: white;
+            letter-spacing: 2px;
+        }
+        
+        /* Map Animations */
+        @keyframes pulse-ring {
+            0% { transform: scale(0.8); box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); }
+            70% { transform: scale(1); box-shadow: 0 0 0 15px rgba(239, 68, 68, 0); }
+            100% { transform: scale(0.8); box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+        }
+        .hotspot-active {
+            animation: pulse-ring 2s infinite;
+        }
+        .hotspot-done {
+            background-color: #10B981 !important;
+            opacity: 0.7;
+            cursor: default;
+        }
+
+        /* Meme Popup Animation */
+        @keyframes popIn {
+            0% { transform: scale(0); opacity: 0; }
+            80% { transform: scale(1.1); opacity: 1; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        .meme-animate {
+            animation: popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+        }
+
+        /* Progress Bar Striped */
+        .progress-striped {
+            background-image: linear-gradient(45deg, rgba(255, 255, 255, 0.15) 25%, transparent 25%, transparent 50%, rgba(255, 255, 255, 0.15) 50%, rgba(255, 255, 255, 0.15) 75%, transparent 75%, transparent);
+            background-size: 1rem 1rem;
+        }
+        
+        /* Hide scrollbar for clean map viewing */
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col selection:bg-yellow-400">
+
+    <!-- SCREEN 1: LOGIN / GATEWAY -->
+    <div id="screen-login" class="flex-1 flex flex-col items-center justify-center p-6 relative h-screen">
+        <div class="bg-white p-8 rounded-3xl shadow-xl w-full max-w-md text-center border-4 border-yellow-400 z-10">
+            <div class="text-6xl mb-4">🏢</div>
+            <h1 class="text-3xl font-extrabold mb-2 text-yellow-600">The Emotional Blueprint</h1>
+            <p class="text-sm text-gray-500 mb-6 font-semibold">Project Lead Edition</p>
+            
+            <div class="space-y-4 text-left">
+                <div>
+                    <label class="block text-sm font-bold text-gray-700 mb-1">Nama Lengkap</label>
+                    <input type="text" id="input-name" placeholder="Ketik nama kamu..." class="w-full px-4 py-3 rounded-xl border-2 border-yellow-200 focus:border-yellow-500 focus:outline-none bg-yellow-50 transition-colors">
+                </div>
+                <div>
+                    <label class="block text-sm font-bold text-gray-700 mb-1">NIK</label>
+                    <input type="number" id="input-nik" placeholder="Ketik NIK kamu..." class="w-full px-4 py-3 rounded-xl border-2 border-yellow-200 focus:border-yellow-500 focus:outline-none bg-yellow-50 transition-colors">
+                </div>
+                <button onclick="app.startGame()" class="w-full bg-yellow-400 hover:bg-yellow-500 text-gray-900 font-bold py-4 rounded-xl shadow-[0_4px_0_rgb(202,138,4)] hover:shadow-[0_2px_0_rgb(202,138,4)] hover:translate-y-[2px] transition-all text-lg mt-4">
+                    MULAI MISI 🚀
+                </button>
+            </div>
+        </div>
+        
+        <!-- Decorative Background Elements -->
+        <div class="absolute top-10 left-10 text-4xl opacity-20">📁</div>
+        <div class="absolute bottom-20 right-10 text-4xl opacity-20">💻</div>
+        <div class="absolute top-1/4 right-1/4 text-6xl opacity-10">☕</div>
+        
+        <footer class="absolute bottom-4 text-center w-full text-xs text-gray-400 font-bold">
+            Education & Training Dept. © 2026
+        </footer>
+    </div>
+
+    <!-- SCREEN 2: MISSION BRIEFING -->
+    <div id="screen-briefing" class="hidden flex-1 flex flex-col items-center justify-center p-6 h-screen">
+        <div class="bg-white p-8 rounded-3xl shadow-xl w-full max-w-2xl border-4 border-yellow-400 relative overflow-hidden">
+            <div class="absolute -top-10 -right-10 w-32 h-32 bg-yellow-200 rounded-full opacity-50"></div>
+            
+            <h2 class="text-3xl font-extrabold text-yellow-600 mb-4 flex items-center gap-2">
+                <span class="text-4xl">🎯</span> Mission Briefing
+            </h2>
+            
+            <div class="space-y-4 text-gray-700 mb-8 bg-yellow-50 p-4 rounded-xl border border-yellow-200">
+                <p>Halo, <strong><span id="display-name"></span></strong>! Kamu baru saja ditunjuk sebagai Project Lead proyek paling krusial tahun ini.</p>
+                <p class="font-bold text-red-500 text-lg">TAPI INGAT! ⚠️</p>
+                <p>Skill teknis dewa-mu tidak ada artinya kalau rekan kerjamu enggan membantu. Pekerjaanmu BARU BERES kalau hubunganmu dengan stakeholder baik!</p>
+                
+                <hr class="border-yellow-300">
+                
+                <h3 class="font-bold text-lg text-gray-800">ATURAN MAIN (The Emotional Bank Account):</h3>
+                <ul class="list-disc list-inside space-y-2">
+                    <li>Eksplorasi map kantor dan temukan <span class="font-bold">10 interaksi sosial.</span></li>
+                    <li>
+                        Pilih tindakanmu: 
+                        <span class="inline-block bg-green-100 text-green-700 px-2 py-1 rounded font-bold text-xs mt-1">SETORAN (+20)</span> = Tindakan yang membangun relasi.
+                        atau
+                        <span class="inline-block bg-red-100 text-red-700 px-2 py-1 rounded font-bold text-xs mt-1">TARIKAN (-10)</span> = Tindakan yang merusak relasi.
+                    </li>
+                    <li>Capai <strong>100 Poin Saldo Emosi</strong> sebelum proyek selesai!</li>
+                </ul>
+            </div>
+            
+            <button onclick="app.enterGame()" class="w-full bg-yellow-400 hover:bg-yellow-500 text-gray-900 font-bold py-4 rounded-xl shadow-[0_4px_0_rgb(202,138,4)] hover:shadow-[0_2px_0_rgb(202,138,4)] hover:translate-y-[2px] transition-all text-lg">
+                SAYA SIAP! 🔥
+            </button>
+        </div>
+    </div>
+
+    <!-- SCREEN 3: GAMEPLAY (OFFICE MAP) -->
+    <div id="screen-game" class="hidden flex-col h-screen overflow-hidden bg-[#FEF3C7]">
+        
+        <!-- Top HUD -->
+        <div class="bg-white p-4 shadow-md flex flex-wrap items-center justify-between z-20 border-b-4 border-yellow-400 gap-2 shrink-0">
+            <div class="flex items-center gap-3">
+                <div class="bg-yellow-100 p-2 rounded-lg font-bold text-yellow-700 text-sm sm:text-base border border-yellow-300">
+                    <span id="hud-name">Player</span>
+                </div>
+                <button onclick="audioManager.toggleMute()" id="btn-mute" class="bg-gray-200 p-2 rounded-full hover:bg-gray-300 transition-colors text-xl">
+                    🔊
+                </button>
+            </div>
+            
+            <div class="flex-1 max-w-md mx-4 hidden sm:block">
+                <div class="flex justify-between text-xs font-bold mb-1">
+                    <span>Progress Proyek</span>
+                    <span id="hud-progress-text">0%</span>
+                </div>
+                <div class="w-full bg-gray-200 rounded-full h-4 border border-gray-300">
+                    <div id="hud-progress-bar" class="bg-blue-500 h-full rounded-full progress-striped transition-all duration-500" style="width: 0%"></div>
+                </div>
+            </div>
+
+            <div class="text-right">
+                <div class="text-xs font-bold text-gray-500 uppercase tracking-wide">Saldo Emosi</div>
+                <div class="text-2xl sm:text-3xl font-black text-green-600 flex items-center gap-1">
+                    <span id="hud-score">0</span><span class="text-sm">/ 100</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Mobile Progress Bar -->
+        <div class="w-full bg-gray-200 h-3 sm:hidden shrink-0">
+            <div id="hud-progress-bar-mobile" class="bg-blue-500 h-full progress-striped transition-all duration-500" style="width: 0%"></div>
+        </div>
+
+        <!-- Info Badges Ribbon -->
+        <div class="bg-yellow-50 px-4 py-2 flex gap-2 overflow-x-auto no-scrollbar shrink-0 border-b border-yellow-200" id="badge-container">
+            <span class="text-xs font-bold text-gray-400 italic py-1">Kumpulkan lencana dengan menjawab benar!</span>
+        </div>
+
+        <!-- The Map Area -->
+        <div class="flex-1 relative overflow-auto no-scrollbar bg-[#e5e7eb] flex items-center justify-center p-4">
+            
+            <div class="relative w-[800px] sm:w-[1000px] max-w-none aspect-[16/9] bg-white rounded-xl shadow-2xl border-8 border-gray-800 overflow-hidden shrink-0">
+                
+                <!-- SVG Office Plan Background -->
+                <svg width="100%" height="100%" xmlns="http://www.w3.org/2000/svg" class="absolute inset-0">
+                    <defs>
+                        <!-- Wood floor pattern -->
+                        <pattern id="wood" width="40" height="100" patternUnits="userSpaceOnUse">
+                            <rect width="40" height="100" fill="#D2B48C" />
+                            <line x1="0" y1="0" x2="0" y2="100" stroke="#C19A6B" stroke-width="2"/>
+                            <line x1="0" y1="50" x2="40" y2="50" stroke="#C19A6B" stroke-width="1"/>
+                        </pattern>
+                        <!-- Tile pattern -->
+                        <pattern id="tiles" width="30" height="30" patternUnits="userSpaceOnUse">
+                            <rect width="30" height="30" fill="#f0f0f0" stroke="#ccc" stroke-width="1"/>
+                        </pattern>
+                    </defs>
+
+                    <!-- Base Floor -->
+                    <rect width="100%" height="100%" fill="url(#wood)" />
+
+                    <!-- Rooms Setup -->
+                    <!-- Meeting Room (Top Left) -->
+                    <rect x="0" y="0" width="35%" height="45%" fill="url(#tiles)" stroke="#4B5563" stroke-width="6"/>
+                    <!-- Meeting Table -->
+                    <rect x="10%" y="15%" width="15%" height="15%" rx="10" fill="#8B4513" />
+                    <!-- Chairs -->
+                    <circle cx="9%" cy="22%" r="1.5%" fill="#374151" />
+                    <circle cx="26%" cy="22%" r="1.5%" fill="#374151" />
+                    <circle cx="17.5%" cy="13%" r="1.5%" fill="#374151" />
+                    <circle cx="17.5%" cy="31%" r="1.5%" fill="#374151" />
+
+                    <!-- Manager Office (Top Right) -->
+                    <rect x="70%" y="0" width="30%" height="40%" fill="#FFF8DC" stroke="#4B5563" stroke-width="6"/>
+                    <rect x="78%" y="10%" width="10%" height="8%" fill="#A0522D" />
+                    <circle cx="83%" cy="22%" r="1.5%" fill="#1F2937" />
+
+                    <!-- Break Room / Pantry (Bottom Left) -->
+                    <rect x="0" y="65%" width="25%" height="35%" fill="#F0FFFF" stroke="#4B5563" stroke-width="6"/>
+                    <!-- Kitchen counter -->
+                    <rect x="0" y="65%" width="8%" height="35%" fill="#D1D5DB" />
+
+                    <!-- Workstations -->
+                    <!-- Workstation 1 -->
+                    <rect x="40%" y="50%" width="15%" height="10%" rx="2" fill="#DEB887" />
+                    <rect x="42%" y="51%" width="3%" height="2%" fill="#9CA3AF" />
+                    <rect x="50%" y="51%" width="3%" height="2%" fill="#9CA3AF" />
+                    <!-- Workstation 2 -->
+                    <rect x="65%" y="60%" width="15%" height="10%" rx="2" fill="#DEB887" />
+                    <rect x="67%" y="61%" width="3%" height="2%" fill="#9CA3AF" />
+                    <rect x="75%" y="61%" width="3%" height="2%" fill="#9CA3AF" />
+                    <!-- Workstation 3 -->
+                    <rect x="45%" y="75%" width="15%" height="10%" rx="2" fill="#DEB887" />
+
+                    <!-- Plants -->
+                    <circle cx="38%" cy="5%" r="2%" fill="#22C55E" stroke="#166534" stroke-width="2"/>
+                    <circle cx="28%" cy="95%" r="2%" fill="#22C55E" stroke="#166534" stroke-width="2"/>
+                    <circle cx="95%" cy="95%" r="2%" fill="#22C55E" stroke="#166534" stroke-width="2"/>
+                </svg>
+
+                <!-- Absolute HTML Label Layers (Guarantees no occlusion) -->
+                <div class="absolute inset-0 pointer-events-none z-10">
+                    <!-- Meeting Room Label -->
+                    <div class="absolute top-[8%] left-[4%] bg-gray-900/90 border border-yellow-400 rounded px-2.5 py-1 text-white text-xs font-black tracking-wide uppercase shadow-md">
+                        MEETING ROOM 👥
+                    </div>
+                    <!-- Manager Office Label -->
+                    <div class="absolute top-[8%] left-[73%] bg-gray-900/90 border border-yellow-400 rounded px-2.5 py-1 text-white text-xs font-black tracking-wide uppercase shadow-md">
+                        MANAGER OFFICE 👑
+                    </div>
+                    <!-- Pantry Label -->
+                    <div class="absolute bottom-[28%] left-[4%] bg-gray-900/90 border border-yellow-400 rounded px-2.5 py-1 text-white text-xs font-black tracking-wide uppercase shadow-md">
+                        PANTRY ☕
+                    </div>
+                    <!-- Main Workspace Area Label -->
+                    <div class="absolute top-[50%] left-[50%] transform -translate-x-1/2 -translate-y-1/2 text-gray-800/20 font-black text-3xl tracking-widest uppercase text-center">
+                        OPEN WORKSPACE
+                    </div>
+                </div>
+
+                <!-- Hotspots container (injected by JS) -->
+                <div id="hotspots-container" class="absolute inset-0"></div>
+
+                <div class="absolute bottom-4 left-1/2 transform -translate-x-1/2 bg-white/95 px-4 py-2 rounded-full shadow-lg font-bold text-xs text-gray-700 flex items-center gap-2 border-2 border-yellow-400 z-30">
+                    <span class="text-lg animate-bounce">👆</span> Klik titik merah yang berkedip!
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: QUESTION SCENARIO -->
+    <div id="modal-question" class="fixed inset-0 z-40 bg-black/80 hidden flex items-center justify-center p-4 backdrop-blur-sm">
+        <div class="bg-white rounded-3xl w-full max-w-lg overflow-hidden shadow-2xl border-4 border-yellow-400 flex flex-col my-auto mt-20 sm:mt-auto">
+            
+            <!-- Timer Bar -->
+            <div class="w-full h-3 bg-gray-200">
+                <div id="timer-bar" class="h-full bg-red-500 transition-all duration-100 linear" style="width: 100%"></div>
+            </div>
+
+            <div class="p-6">
+                <div class="flex items-center justify-between mb-4">
+                    <span class="bg-yellow-100 text-yellow-800 text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wide border border-yellow-300">Skenario Interaksi</span>
+                    <span id="timer-text" class="font-black text-red-500 text-xl">15s</span>
+                </div>
+                
+                <h3 id="question-text" class="text-xl font-bold text-gray-800 mb-6 leading-relaxed">
+                    <!-- Text injected here -->
+                </h3>
+
+                <div class="space-y-3">
+                    <button onclick="app.answerQuestion('Setoran')" class="w-full group relative overflow-hidden bg-green-50 hover:bg-green-100 border-2 border-green-500 text-green-800 font-bold py-4 px-6 rounded-2xl transition-all flex items-center justify-between">
+                        <span class="z-10 text-lg">SETORAN 📈</span>
+                        <span class="z-10 text-xs bg-green-200 px-2 py-1 rounded text-green-800 opacity-80 group-hover:opacity-100 transition-opacity">Membangun Relasi (+20)</span>
+                        <div class="absolute inset-0 bg-green-200 transform -translate-x-full group-hover:translate-x-0 transition-transform duration-300 ease-in-out"></div>
+                    </button>
+                    
+                    <button onclick="app.answerQuestion('Tarikan')" class="w-full group relative overflow-hidden bg-red-50 hover:bg-red-100 border-2 border-red-500 text-red-800 font-bold py-4 px-6 rounded-2xl transition-all flex items-center justify-between">
+                        <span class="z-10 text-lg">TARIKAN 📉</span>
+                        <span class="z-10 text-xs bg-red-200 px-2 py-1 rounded text-red-800 opacity-80 group-hover:opacity-100 transition-opacity">Merusak Relasi (-10)</span>
+                        <div class="absolute inset-0 bg-red-200 transform -translate-x-full group-hover:translate-x-0 transition-transform duration-300 ease-in-out"></div>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: MEME POPUP (Feedback with exact 1:1 ratio) -->
+    <div id="modal-meme" class="fixed inset-0 z-50 bg-black/60 hidden flex items-center justify-center p-4">
+        <div id="meme-content" class="bg-white p-6 pb-8 rounded-3xl shadow-2xl text-center border-8 transform scale-0 max-w-sm w-full">
+            
+            <!-- Exact 1:1 Sizing Container to prevent layout shift & cutting -->
+            <div class="w-64 h-64 mx-auto overflow-hidden rounded-2xl border-4 border-gray-100 shadow-inner mb-4 relative bg-gray-50">
+                <img id="meme-img" src="" alt="Meme Feedback" class="absolute inset-0 w-full h-full object-cover" onerror="this.src='https://placehold.co/400x400/eee/999?text=Meme'">
+            </div>
+
+            <h2 id="meme-title" class="meme-font text-3xl mb-3 leading-none">STONKS</h2>
+            
+            <div class="bg-gray-50 rounded-xl p-4 border border-gray-200 text-left">
+                <p id="meme-explanation" class="text-xs text-gray-700 font-semibold leading-relaxed">
+                    Penjelasan di sini.
+                </p>
+            </div>
+            
+            <button onclick="app.closeMeme()" class="mt-6 bg-gray-900 hover:bg-gray-800 text-white font-bold py-3 px-8 rounded-xl shadow-[0_4px_0_rgb(31,41,55)] hover:translate-y-[2px] hover:shadow-none transition-all w-full">
+                LANJUTKAN ⏭️
+            </button>
+        </div>
+    </div>
+
+    <!-- SCREEN 4: POST-ACTION DEBRIEF -->
+    <div id="screen-result" class="hidden flex-1 flex flex-col items-center p-6 h-screen overflow-y-auto no-scrollbar">
+        <div class="bg-white p-8 rounded-3xl shadow-xl w-full max-w-3xl border-4 border-yellow-400 mt-10 mb-10">
+            <div class="text-center mb-8">
+                <div id="result-icon" class="text-6xl mb-4">🏆</div>
+                <h1 id="result-title" class="text-4xl font-black text-gray-800 mb-2">MISI SELESAI</h1>
+                <p id="result-subtitle" class="text-gray-500 font-bold">Inilah hasil evaluasi hubungan kerjamu!</p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                <div class="bg-yellow-50 p-6 rounded-2xl border-2 border-yellow-200 text-center">
+                    <div class="text-sm font-bold text-gray-500 uppercase">Saldo Emosi Akhir</div>
+                    <div id="final-score" class="text-5xl font-black text-yellow-600 mt-2">0</div>
+                    <div class="text-xs text-gray-500 mt-2 font-semibold">Target: 100 Poin</div>
+                </div>
+                <div class="bg-blue-50 p-6 rounded-2xl border-2 border-blue-200 text-center flex flex-col justify-center">
+                    <div class="text-sm font-bold text-gray-500 uppercase mb-2">Status Proyek</div>
+                    <div id="final-status" class="text-xl font-bold text-blue-700 px-4 py-2 bg-blue-100 rounded-lg inline-block">
+                        Sukses
+                    </div>
+                </div>
+            </div>
+
+            <h3 class="font-bold text-lg mb-4 border-b-2 border-gray-100 pb-2">Log Interaksi (Review):</h3>
+            <div id="review-list" class="space-y-3 mb-8">
+                <!-- Log items injected here -->
+            </div>
+
+            <button onclick="location.reload()" class="w-full bg-yellow-400 hover:bg-yellow-500 text-gray-900 font-bold py-4 rounded-xl shadow-[0_4px_0_rgb(202,138,4)] hover:translate-y-[2px] hover:shadow-none transition-all text-lg">
+                MAIN KEMBALI 🔄
+            </button>
+        </div>
+    </div>
+
+    <!-- JAVASCRIPT GAME LOGIC -->
+    <script>
+        // --- 1. WEB AUDIO API SYNTHESIZER ---
+        const audioManager = {
+            ctx: null,
+            isMuted: false,
+            bgmGain: null,
+            isPlayingBGM: false,
+            nextNoteTime: 0,
+            bgmInterval: null,
+            
+            init() {
+                if (!this.ctx) {
+                    this.ctx = new (window.AudioContext || window.webkitAudioContext)();
+                }
+                if (this.ctx.state === 'suspended') {
+                    this.ctx.resume();
+                }
+            },
+            
+            toggleMute() {
+                this.isMuted = !this.isMuted;
+                document.getElementById('btn-mute').innerHTML = this.isMuted ? '🔇' : '🔊';
+                if (this.bgmGain) {
+                    // Smooth transition to prevent audio popping click
+                    this.bgmGain.gain.setTargetAtTime(this.isMuted ? 0 : 0.08, this.ctx.currentTime, 0.1);
+                }
+            },
+
+            playClick() {
+                if (this.isMuted || !this.ctx) return;
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(600, this.ctx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(800, this.ctx.currentTime + 0.1);
+                gain.gain.setValueAtTime(0.1, this.ctx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + 0.1);
+                osc.connect(gain);
+                gain.connect(this.ctx.destination);
+                osc.start();
+                osc.stop(this.ctx.currentTime + 0.1);
+            },
+
+            playCorrect() {
+                if (this.isMuted || !this.ctx) return;
+                const freqs = [523.25, 659.25, 783.99, 1046.50]; // C Major Chord (Upward)
+                const gain = this.ctx.createGain();
+                gain.gain.value = 0.08;
+                gain.connect(this.ctx.destination);
+
+                freqs.forEach((freq, i) => {
+                    const osc = this.ctx.createOscillator();
+                    osc.type = 'triangle';
+                    osc.frequency.value = freq;
+                    osc.connect(gain);
+                    osc.start(this.ctx.currentTime + i * 0.08);
+                    osc.stop(this.ctx.currentTime + i * 0.08 + 0.2);
+                });
+            },
+
+            playWrong() {
+                if (this.isMuted || !this.ctx) return;
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(220, this.ctx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(110, this.ctx.currentTime + 0.4);
+                gain.gain.setValueAtTime(0.12, this.ctx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + 0.4);
+                
+                // Lowpass filter to give "thud" effect
+                const filter = this.ctx.createBiquadFilter();
+                filter.type = 'lowpass';
+                filter.frequency.value = 400;
+
+                osc.connect(filter);
+                filter.connect(gain);
+                gain.connect(this.ctx.destination);
+                
+                osc.start();
+                osc.stop(this.ctx.currentTime + 0.4);
+            },
+
+            startBGM() {
+                if (this.isPlayingBGM || !this.ctx) return;
+                this.isPlayingBGM = true;
+                
+                this.bgmGain = this.ctx.createGain();
+                this.bgmGain.gain.value = this.isMuted ? 0 : 0.08;
+                this.bgmGain.connect(this.ctx.destination);
+
+                // Upbeat Cheerful Major Pentatonic Melody Block (C4 -> A5)
+                const cheerfulNotes = [
+                    523.25, 587.33, 659.25, 783.99, 880.00, // C5, D5, E5, G5, A5
+                    659.25, 783.99, 523.25, 587.33, 783.99,
+                    880.00, 1046.50, 880.00, 783.99, 659.25,
+                    587.33, 523.25, 659.25, 783.99, 523.25
+                ];
+                let noteIndex = 0;
+
+                const synthMelody = () => {
+                    if (!this.isPlayingBGM) return;
+                    
+                    const osc = this.ctx.createOscillator();
+                    const noteGain = this.ctx.createGain();
+                    
+                    osc.type = 'triangle'; // Smooth sweet tone
+                    osc.frequency.setValueAtTime(cheerfulNotes[noteIndex], this.ctx.currentTime);
+                    
+                    noteGain.gain.setValueAtTime(0.25, this.ctx.currentTime);
+                    noteGain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + 0.25);
+                    
+                    const filter = this.ctx.createBiquadFilter();
+                    filter.type = "peaking";
+                    filter.frequency.value = 1200;
+                    
+                    osc.connect(filter);
+                    filter.connect(noteGain);
+                    noteGain.connect(this.bgmGain);
+                    
+                    osc.start();
+                    osc.stop(this.ctx.currentTime + 0.28);
+                    
+                    noteIndex = (noteIndex + 1) % cheerfulNotes.length;
+                    
+                    // Trigger note every 300ms
+                    this.bgmInterval = setTimeout(synthMelody, 300);
+                };
+                
+                synthMelody();
+            }
+        };
+
+        // --- 2. GAME DATA ---
+        const questionsData = [
+            {
+                id: 1, pos: { x: 17, y: 22 }, // Meeting Room
+                text: "Rekan divisi Finance meminta data untuk laporan akhir bulan saat kamu sedang fokus coding. Kamu merespon dengan ramah dan menjanjikan data dalam 30 menit.",
+                type: "Setoran",
+                explanation: "Menghargai urgensi divisi lain tanpa mengorbankan pekerjaanmu. Ini membangun rasa aman (saldo positif)."
+            },
+            {
+                id: 2, pos: { x: 45, y: 55 }, // Workspace 1
+                text: "Kamu kesal karena desain UI berubah-ubah, lalu kamu mengkritik keras sang desainer di grup WhatsApp kantor yang berisi banyak orang.",
+                type: "Tarikan",
+                explanation: "Mengkritik di depan umum merendahkan harga diri rekan kerja. Tarikan besar pada saldo emosi!"
+            },
+            {
+                id: 3, pos: { x: 12, y: 80 }, // Pantry
+                text: "Kamu melihat tim IT sedang lembur setup server. Kamu mampir ke pantry dan membuatkan mereka kopi/cemilan.",
+                type: "Setoran",
+                explanation: "Perhatian kecil (deposit) sangat efektif membangun empati dan dukungan jangka panjang dari tim IT."
+            },
+            {
+                id: 4, pos: { x: 26, y: 22 }, // Meeting room seat
+                text: "Kamu membatalkan meeting evaluasi dengan tim QA secara mendadak hanya karena kamu merasa kode buatanmu sudah sempurna dan bebas bug.",
+                type: "Tarikan",
+                explanation: "Sombong dan tidak menghargai waktu orang lain. Ini merusak komunikasi terbuka."
+            },
+            {
+                id: 5, pos: { x: 80, y: 20 }, // Manager Office
+                text: "Kamu mengabaikan chat dari manajer yang menanyakan progres karena merasa dia terlalu 'micromanage' dan mengganggu kerjamu.",
+                type: "Tarikan",
+                explanation: "Mengabaikan atasan (silence) menciptakan kecurigaan. Manajer butuh rasa aman mengenai progres proyek."
+            },
+            {
+                id: 6, pos: { x: 70, y: 65 }, // Workspace 2
+                text: "Saat presentasi ke manajemen, kamu mengambil seluruh kredit atas keberhasilan rilis fitur, padahal itu hasil begadang tim juniormu.",
+                type: "Tarikan",
+                explanation: "Mengklaim hasil kerja orang lain adalah pengkhianatan kepercayaan yang paling fatal di dunia kerja."
+            },
+            {
+                id: 7, pos: { x: 38, y: 10 }, // Near Plant
+                text: "Kamu berpapasan dengan staf kebersihan dan mengucapkan terima kasih secara spesifik karena selalu merapikan mejamu setiap pagi.",
+                type: "Setoran",
+                explanation: "Apresiasi tulus kepada siapa saja (tanpa memandang jabatan) memperkuat karakter dan budaya kerja positif."
+            },
+            {
+                id: 8, pos: { x: 50, y: 75 }, // Workspace 3
+                text: "Kamu meluangkan waktu 10 menit untuk mendengarkan keluh kesah rekan kerjamu yang sedang merasa burnout akibat revisi tiada henti.",
+                type: "Setoran",
+                explanation: "Mendengarkan secara empatik adalah salah satu bentuk 'Setoran' terbesar menurut Stephen Covey."
+            },
+            {
+                id: 9, pos: { x: 40, y: 35 }, // Hallway
+                text: "Kamu menyadari ada bug parah di kodemu yang membuat tim QA lembur. Kamu meminta maaf secara tulus tanpa mencari alasan.",
+                type: "Setoran",
+                explanation: "Meminta maaf dengan tulus saat salah justru membangun kepercayaan, bukan melemahkan."
+            },
+            {
+                id: 10, pos: { x: 85, y: 70 }, // Corner
+                text: "Kamu sengaja tidak mendokumentasikan cara kerja API yang kamu buat agar kamu terlihat sebagai satu-satunya orang yang 'jago' di tim.",
+                type: "Tarikan",
+                explanation: "Menyimpan informasi (siloing) demi ego pribadi sangat merusak kolaborasi dan membahayakan proyek."
+            }
+        ];
+
+        // High quality external Imgflip / static 1:1 templates
+        const memes = {
+            correct: [
+                { imgUrl: "https://i.imgflip.com/3nngy8.jpg", title: "STONKS", color: "border-green-500", text: "text-green-600" },
+                { imgUrl: "https://i.imgflip.com/1bhk.jpg", title: "MENYALA ABANGKU!", color: "border-orange-500", text: "text-orange-600" },
+                { imgUrl: "https://i.imgflip.com/43a45p.png", title: "SIGMA CHAD", color: "border-gray-700", text: "text-gray-800" },
+                { imgUrl: "https://i.imgflip.com/1ur99e.jpg", title: "OUTSTANDING MOVE", color: "border-blue-500", text: "text-blue-600" }
+            ],
+            wrong: [
+                { imgUrl: "https://i.imgflip.com/3pbbvj.jpg", title: "NOT STONKS", color: "border-red-500", text: "text-red-600" },
+                { imgUrl: "https://i.imgflip.com/1bij.jpg", title: "YA NDA TAU KOK", color: "border-pink-500", text: "text-pink-600" },
+                { imgUrl: "https://i.imgflip.com/261o3j.jpg", title: "MENDING TURU", color: "border-gray-800", text: "text-gray-900" },
+                { imgUrl: "https://i.imgflip.com/2wqn03.jpg", title: "RUGI DONG", color: "border-orange-400", text: "text-orange-500" }
+            ]
+        };
+
+        // --- 3. APP STATE & LOGIC ---
+        const app = {
+            name: "",
+            nik: "",
+            score: 0,
+            targetScore: 100,
+            answeredCount: 0,
+            currentQuestion: null,
+            timerInterval: null,
+            timeLeft: 15,
+            history: [],
+            unlockedBadges: [],
+
+            startGame() {
+                const nameInput = document.getElementById('input-name').value.trim();
+                const nikInput = document.getElementById('input-nik').value.trim();
+                
+                if (!nameInput || !nikInput) {
+                    alert("Isi Nama dan NIK dulu ya, Kak!");
+                    return;
+                }
+
+                this.name = nameInput;
+                this.nik = nikInput;
+                
+                // Trigger Web Audio initial handshakes
+                audioManager.init();
+                audioManager.playClick();
+
+                document.getElementById('display-name').innerText = this.name;
+                
+                // Move Screen
+                document.getElementById('screen-login').classList.add('hidden');
+                document.getElementById('screen-briefing').classList.remove('hidden');
+            },
+
+            enterGame() {
+                audioManager.init();
+                audioManager.playClick();
+                audioManager.startBGM();
+
+                document.getElementById('screen-briefing').classList.add('hidden');
+                document.getElementById('screen-game').classList.remove('hidden');
+                document.getElementById('screen-game').classList.add('flex');
+
+                document.getElementById('hud-name').innerText = this.name;
+                this.renderMap();
+                this.updateHUD();
+            },
+
+            renderMap() {
+                const container = document.getElementById('hotspots-container');
+                container.innerHTML = '';
+
+                questionsData.forEach(q => {
+                    const btn = document.createElement('button');
+                    btn.id = `hotspot-${q.id}`;
+                    btn.className = `absolute w-8 h-8 md:w-10 md:h-10 bg-red-500 rounded-full border-2 border-white hotspot-active z-30 transform -translate-x-1/2 -translate-y-1/2 transition-all hover:scale-120`;
+                    btn.style.left = `${q.pos.x}%`;
+                    btn.style.top = `${q.pos.y}%`;
+                    
+                    btn.innerHTML = `<span class="text-white font-black text-xs md:text-sm">!</span>`;
+                    btn.onclick = () => this.openQuestion(q);
+                    container.appendChild(btn);
+                });
+            },
+
+            openQuestion(q) {
+                audioManager.playClick();
+                this.currentQuestion = q;
+                
+                document.getElementById('question-text').innerText = q.text;
+                document.getElementById('modal-question').classList.remove('hidden');
+                document.getElementById('modal-question').classList.add('flex');
+                
+                this.timeLeft = 15;
+                this.updateTimerUI();
+                clearInterval(this.timerInterval);
+                this.timerInterval = setInterval(() => {
+                    this.timeLeft -= 0.1;
+                    this.updateTimerUI();
+                    if (this.timeLeft <= 0) {
+                        this.handleTimeout();
+                    }
+                }, 100);
+            },
+
+            updateTimerUI() {
+                const percentage = (this.timeLeft / 15) * 100;
+                document.getElementById('timer-bar').style.width = `${Math.max(0, percentage)}%`;
+                document.getElementById('timer-text').innerText = `${Math.ceil(this.timeLeft)}s`;
+                
+                if (percentage < 30) {
+                    document.getElementById('timer-bar').className = "h-full bg-red-700 transition-all duration-100 linear";
+                } else {
+                    document.getElementById('timer-bar').className = "h-full bg-red-500 transition-all duration-100 linear";
+                }
+            },
+
+            handleTimeout() {
+                clearInterval(this.timerInterval);
+                document.getElementById('modal-question').classList.add('hidden');
+                document.getElementById('modal-question').classList.remove('flex');
+                this.processAnswer(null, false);
+            },
+
+            answerQuestion(userChoice) {
+                clearInterval(this.timerInterval);
+                document.getElementById('modal-question').classList.add('hidden');
+                document.getElementById('modal-question').classList.remove('flex');
+                
+                const isCorrect = (userChoice === this.currentQuestion.type);
+                this.processAnswer(userChoice, isCorrect);
+            },
+
+            processAnswer(userChoice, isCorrect) {
+                const hotspot = document.getElementById(`hotspot-${this.currentQuestion.id}`);
+                if (hotspot) {
+                    hotspot.classList.remove('hotspot-active', 'bg-red-500');
+                    hotspot.classList.add('hotspot-done');
+                    hotspot.innerHTML = '✓';
+                    hotspot.onclick = null;
+                }
+
+                let pointsEarned = 0;
+                if (isCorrect) {
+                    pointsEarned = 20;
+                    this.score += pointsEarned;
+                    audioManager.playCorrect();
+                } else {
+                    pointsEarned = -10;
+                    this.score = Math.max(0, this.score - 10);
+                    audioManager.playWrong();
+                }
+
+                this.answeredCount++;
+                
+                this.history.push({
+                    q: this.currentQuestion,
+                    userChoice: userChoice || "Kehabisan Waktu",
+                    isCorrect: isCorrect,
+                    points: pointsEarned
+                });
+
+                this.updateHUD();
+                this.checkBadges();
+                this.showMeme(isCorrect, this.currentQuestion.explanation);
+            },
+
+            updateHUD() {
+                const scoreEl = document.getElementById('hud-score');
+                scoreEl.innerText = this.score;
+                
+                if (this.score < 50) scoreEl.className = "text-red-500 text-2xl sm:text-3xl font-black";
+                else if (this.score < 100) scoreEl.className = "text-yellow-600 text-2xl sm:text-3xl font-black";
+                else scoreEl.className = "text-green-600 text-2xl sm:text-3xl font-black";
+
+                const progressPercent = (this.answeredCount / questionsData.length) * 100;
+                document.getElementById('hud-progress-bar').style.width = `${progressPercent}%`;
+                document.getElementById('hud-progress-bar-mobile').style.width = `${progressPercent}%`;
+                document.getElementById('hud-progress-text').innerText = `${Math.round(progressPercent)}%`;
+            },
+
+            checkBadges() {
+                const badgeContainer = document.getElementById('badge-container');
+                let newBadge = null;
+                const correctAnswers = this.history.filter(h => h.isCorrect).length;
+
+                if (correctAnswers === 3 && !this.unlockedBadges.includes('rookie')) {
+                    newBadge = { id: 'rookie', icon: '🌱', name: 'Rookie Networker' };
+                } else if (correctAnswers === 7 && !this.unlockedBadges.includes('pro')) {
+                    newBadge = { id: 'pro', icon: '💼', name: 'Pro Collaborator' };
+                } else if (correctAnswers === 10 && !this.unlockedBadges.includes('master')) {
+                    newBadge = { id: 'master', icon: '👑', name: 'Empathy Master' };
+                }
+
+                if (newBadge) {
+                    this.unlockedBadges.push(newBadge.id);
+                    if (this.unlockedBadges.length === 1) {
+                        badgeContainer.innerHTML = ''; 
+                    }
+                    
+                    const badgeEl = document.createElement('div');
+                    badgeEl.className = "flex items-center gap-1 bg-white px-3 py-1 rounded-full border border-yellow-300 shadow-sm animate-bounce shrink-0";
+                    badgeEl.innerHTML = `<span class="text-base">${newBadge.icon}</span> <span class="text-xs font-bold text-gray-700 whitespace-nowrap">${newBadge.name}</span>`;
+                    badgeContainer.appendChild(badgeEl);
+                    
+                    setTimeout(() => badgeEl.classList.remove('animate-bounce'), 3000);
+                }
+            },
+
+            showMeme(isCorrect, explanation) {
+                const modal = document.getElementById('modal-meme');
+                const content = document.getElementById('meme-content');
+                const imgEl = document.getElementById('meme-img');
+                const titleEl = document.getElementById('meme-title');
+                
+                const memePool = isCorrect ? memes.correct : memes.wrong;
+                const meme = memePool[Math.floor(Math.random() * memePool.length)];
+
+                imgEl.src = meme.imgUrl;
+                titleEl.innerText = meme.title;
+                titleEl.className = `meme-font text-3xl mb-3 leading-none ${meme.text}`;
+                
+                content.className = `bg-white p-6 pb-8 rounded-3xl shadow-2xl text-center border-8 transform scale-0 max-w-sm w-full ${meme.color}`;
+
+                document.getElementById('meme-explanation').innerHTML = 
+                    `<span class="${isCorrect ? 'text-green-600' : 'text-red-600'} font-black uppercase text-xs block mb-1">
+                        ${isCorrect ? 'BENAR! (+20 Poin)' : 'SALAH! (-10 Poin)'}
+                    </span>` + explanation;
+
+                modal.classList.remove('hidden');
+                modal.classList.add('flex');
+                
+                content.classList.remove('meme-animate');
+                void content.offsetWidth; // trigger reflow layout rendering
+                content.classList.add('meme-animate');
+            },
+
+            closeMeme() {
+                audioManager.playClick();
+                const modal = document.getElementById('modal-meme');
+                modal.classList.add('hidden');
+                modal.classList.remove('flex');
+
+                if (this.answeredCount >= questionsData.length) {
+                    setTimeout(() => this.endGame(), 500);
+                }
+            },
+
+            endGame() {
+                document.getElementById('screen-game').classList.add('hidden');
+                document.getElementById('screen-game').classList.remove('flex');
+                
+                const resultScreen = document.getElementById('screen-result');
+                resultScreen.classList.remove('hidden');
+                resultScreen.classList.add('flex');
+
+                const finalScoreEl = document.getElementById('final-score');
+                const finalStatusEl = document.getElementById('final-status');
+                const resultIcon = document.getElementById('result-icon');
+                const resultTitle = document.getElementById('result-title');
+                
+                let currScore = 0;
+                const targetScore = this.score;
+                const scoreInterval = setInterval(() => {
+                    currScore += Math.ceil(targetScore / 20) || 1;
+                    if (currScore >= targetScore) {
+                        currScore = targetScore;
+                        clearInterval(scoreInterval);
+                    }
+                    finalScoreEl.innerText = currScore;
+                }, 50);
+
+                if (this.score >= this.targetScore) {
+                    resultIcon.innerText = '🌟';
+                    resultTitle.innerText = 'PROYEK SUKSES!';
+                    finalStatusEl.innerText = 'Karakter Utama: Kolaborator Hebat';
+                    finalStatusEl.className = "text-xl font-bold text-green-700 px-4 py-2 bg-green-100 rounded-lg inline-block";
+                    audioManager.playCorrect();
+                } else {
+                    resultIcon.innerText = '💥';
+                    resultTitle.innerText = 'PROYEK TERSENDAT!';
+                    finalStatusEl.innerText = 'Evaluasi Hubungan Internal Tim Buruk';
+                    finalStatusEl.className = "text-xl font-bold text-red-700 px-4 py-2 bg-red-100 rounded-lg inline-block";
+                    audioManager.playWrong();
+                }
+
+                const list = document.getElementById('review-list');
+                list.innerHTML = '';
+                this.history.forEach((h, index) => {
+                    const item = document.createElement('div');
+                    item.className = `p-4 rounded-xl border-l-4 ${h.isCorrect ? 'border-green-500 bg-green-50' : 'border-red-500 bg-red-50'}`;
+                    
+                    item.innerHTML = `
+                        <div class="flex justify-between items-start mb-2">
+                            <span class="font-bold text-xs bg-white px-2 py-1 rounded text-gray-600 shadow-sm">Kasus ${index + 1}</span>
+                            <span class="font-black ${h.isCorrect ? 'text-green-600' : 'text-red-600'}">
+                                ${h.points > 0 ? '+'+h.points : h.points}
+                            </span>
+                        </div>
+                        <p class="text-sm text-gray-800 mb-2 italic">"${h.q.text}"</p>
+                        <div class="text-xs font-semibold text-gray-600">
+                            Jawabanmu: <span class="uppercase ${h.isCorrect ? 'text-green-600' : 'text-red-600'}">${h.userChoice}</span> | 
+                            Fakta: <span>${h.q.explanation}</span>
+                        </div>
+                    `;
+                    list.appendChild(item);
+                });
+            }
+        };
+    </script>
+</body>
+</html>
